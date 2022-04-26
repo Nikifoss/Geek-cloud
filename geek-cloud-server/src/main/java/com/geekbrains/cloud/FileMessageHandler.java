@@ -1,10 +1,8 @@
 package com.geekbrains.cloud;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
+import java.nio.file.Path;
 
 public class FileMessageHandler implements Runnable{
 
@@ -15,7 +13,7 @@ public class FileMessageHandler implements Runnable{
     public FileMessageHandler(Socket socket) throws IOException {
         is = new DataInputStream(socket.getInputStream());
         os = new DataOutputStream(socket.getOutputStream());
-        dir = new File("files");
+        dir = new File("geek-cloud-server/files");
         String[] files = dir.list();
         os.writeUTF("#list#");
         os.writeLong(files.length);
@@ -25,9 +23,19 @@ public class FileMessageHandler implements Runnable{
     }
 
     private void sendFileOnClient() throws IOException {
-        String file = is.readUTF();
+        String fileName = is.readUTF();
         os.writeUTF("#fileReceive#");
-        os.writeUTF(file);
+        os.writeUTF(fileName);
+        File file = dir.toPath().resolve(fileName).toFile();
+        os.writeLong(file.length());
+        byte [] buffer = new byte[256];
+        try (InputStream fis = new FileInputStream(file)) {
+            while (fis.available() > 0) {
+                int readCount = fis.read(buffer);
+                os.write(buffer,0 , readCount);
+            }
+        }
+        os.flush();
     }
 
     @Override

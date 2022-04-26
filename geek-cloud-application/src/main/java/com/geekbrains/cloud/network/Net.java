@@ -31,7 +31,19 @@ public class Net {
         return is.readUTF();
     }
 
+    public int read(byte[] buffer) throws IOException {
+        return is.read();
+    }
+
     public void sendUtf(String str) throws IOException {
         os.writeUTF(str);
+    }
+
+    public void sendLong(Long lng) throws IOException {
+        os.writeLong(lng);
+    }
+
+    public void flush() throws IOException {
+        os.flush();
     }
 }
